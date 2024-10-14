@@ -30,7 +30,7 @@ int lastState = 2;
 enum light {off = 0, red = 13, yellow = 12, green = 11};
 light trafficLight = off;
 bool initialState = true;
-boolean initialRedBlinkState = 0; // Used by ISR to check if light has been initialized.
+bool initialRedBlinkState = true; // Used by ISR to check if light has been initialized.
 
 void setup(){
 
@@ -69,11 +69,11 @@ ISR(TIMER1_COMPA_vect){ //timer1 interrupt
   if (initialState == true){  // if the light is in the initial state, blink red light.
       if (initialRedBlinkState){
         digitalWrite(13, HIGH);
-        initialRedBlinkState = 0;
+        initialRedBlinkState = true;
       }
       else{
         digitalWrite(13, LOW);
-        initialRedBlinkState = 1;
+        initialRedBlinkState = false;
       }
     }
 
@@ -121,13 +121,14 @@ void readCommand(){
 
 char toggleLight(){
   // determine which light is on and toggle it.
+  // also, toggle the buzzer on and off.
   if (countdown % 2 == 1) {
     Serial.println("Light on!");
-    digitalWrite(10, HIGH);
+    digitalWrite(10, HIGH); // buzzer on
     return 0x1;
   } else if (countdown % 2 == 0){
     Serial.println("Light off!");
-    digitalWrite(10, LOW);
+    digitalWrite(10, LOW); // buzzer off
     return 0x0;
   }
 }
