@@ -24,7 +24,7 @@ char command[6] = "";  // Command should in theory never need to exceed 5 charac
 // Traffic Light Timer Storage
 int redTimer = -1;
 int greenTimer = -1;
-int countdown = 1;
+int countdown = 2;
 int lastState = 2;
 // Light State Storage
 enum light {off = 0, red = 13, yellow = 12, green = 11};
@@ -69,11 +69,11 @@ ISR(TIMER1_COMPA_vect){ //timer1 interrupt
   if (initialState == true){  // if the light is in the initial state, blink red light.
       if (initialRedBlinkState){
         digitalWrite(13, HIGH);
-        initialRedBlinkState = true;
+        initialRedBlinkState = false;
       }
       else{
         digitalWrite(13, LOW);
-        initialRedBlinkState = false;
+        initialRedBlinkState = true;
       }
     }
 
@@ -119,16 +119,13 @@ void readCommand(){
     }
   }
 
-char toggleLight(){
-  // determine which light is on and toggle it.
-  // also, toggle the buzzer on and off.
+char togglePin(){
+  // toggle value on or off based on if we're on an even or odd countdown interval.
   if (countdown % 2 == 1) {
-    Serial.println("Light on!");
-    digitalWrite(10, HIGH); // buzzer on
+    Serial.println("Toggle on!");
     return 0x1;
   } else if (countdown % 2 == 0){
-    Serial.println("Light off!");
-    digitalWrite(10, LOW); // buzzer off
+    Serial.println("Toggle off!");
     return 0x0;
   }
 }
@@ -188,12 +185,17 @@ void loop(){
     }
   }
 
-
+  // Code for last 3 seconds of any light state (excl. initial state).
   if (countdown <= 6 && lastState != countdown){
     if (trafficLight == red){
-      digitalWrite(trafficLight, toggleLight());
+      digitalWrite(trafficLight, togglePin());
+      digitalWrite(10, togglePin());
+    } else if (trafficLight == yellow){
+      // turn buzzer on for yellow light.
+      digitalWrite(10, togglePin());
     } else if(trafficLight == green){
-      digitalWrite(trafficLight, toggleLight());
+      digitalWrite(trafficLight, togglePin());
+      digitalWrite(10, togglePin());
     }
     lastState = countdown;
   }
@@ -220,7 +222,7 @@ void loop(){
           // set light yellow
           countdown = 3 * 2;
           trafficLight = yellow;
-          digitalWrite(10, LOW);  // comment out this line if you want buzzer on during yellow light.
+          digitalWrite(10, LOW);
           digitalWrite(12, HIGH);
           digitalWrite(13, LOW);
           digitalWrite(11, LOW);
